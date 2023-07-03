@@ -86,14 +86,14 @@ public class SceneItemsManager : SingletonMonobehavior<SceneItemsManager>, ISava
         if (GameObjectSave.sceneData.TryGetValue(sceneName, out SceneSave sceneSave))
         {
             Debug.Log("2");
-            if (sceneSave.listSceneItemDictionary != null && sceneSave.listSceneItemDictionary.TryGetValue("sceneItemList", out List<SceneItem> sceneItemList))
+            if (sceneSave.listSceneItem != null)
             {
                 Debug.Log("3");
                 //scene list item found - destroy exsiting item in the scene 
                 DestroySceneItem();
 
                 // now instantiate the list of scene items
-                InstantiateSceneItem(sceneItemList);
+                InstantiateSceneItem(sceneSave.listSceneItem);
             }
         }
     }
@@ -124,10 +124,9 @@ public class SceneItemsManager : SingletonMonobehavior<SceneItemsManager>, ISava
             sceneItemList.Add(sceneItem);
         }
 
-        //create list scene item dictionary in scene save and add to it
+        //create list scene item in scene save and set to scene item list 
         SceneSave sceneSave = new SceneSave();
-        sceneSave.listSceneItemDictionary = new Dictionary<string, List<SceneItem>>();
-        sceneSave.listSceneItemDictionary.Add("sceneItemList", sceneItemList);
+        sceneSave.listSceneItem = sceneItemList;
 
         //add scene save to gameobject 
         Debug.Log($"Added Scene {sceneName}");
