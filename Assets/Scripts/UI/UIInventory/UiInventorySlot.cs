@@ -33,11 +33,13 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private void OnDisable()
     {
         EventHandler.AfterSceneLoadEvent -= SceneLoaded;
+        EventHandler.DropSelectedItemEvent -= DropSelctedItemAtMouseposition;
     }
 
     private void OnEnable()
     {
         EventHandler.AfterSceneLoadEvent += SceneLoaded;
+        EventHandler.DropSelectedItemEvent += DropSelctedItemAtMouseposition;
     }
 
     private void Start()
