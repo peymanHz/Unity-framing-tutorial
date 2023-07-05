@@ -9,6 +9,7 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private Camera mainCamera;
     private Canvas parentCanvas;
     private Transform parentItem;
+    private GridCursor gridCursor;
     private GameObject draggedItem;
 
     public Image inventorySlotHgihLight;
@@ -42,6 +43,16 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private void Start()
     {
         mainCamera = Camera.main;
+        gridCursor = FindObjectOfType<GridCursor>();
+    }
+
+    private void ClearCursors()
+    {
+        //disable cursor
+        gridCursor.DisableCursor();
+
+        //set item type to none
+        gridCursor.SelectedItemType = ItemType.none;
     }
 
     /// <summary>
@@ -49,23 +60,50 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     /// </summary>
     private void SetSelecctedItem()
     {
+        //clear currently highlighted item
         inventoryBar.ClearHighlightOnInventorySlots();
+
+        //highlight item on the inventory bar
         isSelected = true;
+
+        //set highlighted inventory slot
         inventoryBar.SetHighlightedInventoryslots();
-        InventoryManager.Instance.ClearSelectedinventoryItem(InventoryLocation.player);
+
+        //set use radius for cursor
+        gridCursor.ItemUseGridRadius = itemsDetails.itemUseGridRadius;
+
+        //if item requires a grid cursor then enables cursor
+        if (itemsDetails.itemUseGridRadius > 0)
+        {
+            gridCursor.EnableCursor();
+        }
+        else
+        {
+            gridCursor.DisableCursor();
+        }
+
+        //set item type
+        gridCursor.SelectedItemType = itemsDetails.itemType;
+
+        //set item selected in the inventory
+        InventoryManager.Instance.SetSelectedinventoryItem(InventoryLocation.player, itemsDetails.itemCode);
 
         if (itemsDetails.canBeCarried == true)
         {
+            //show player carry item
             Player.Instance.ShowCarriedItem(itemsDetails.itemCode);
         }
         else
         {
+            //show player carry nothing
             Player.Instance.ClearCarriedItem();
         }
     }
 
     private void ClearSelectedItem()
     {
+        ClearCursors(); 
+
         inventoryBar.ClearHighlightOnInventorySlots();
 
         isSelected = false;
@@ -82,15 +120,11 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         if (itemsDetails != null && isSelected)
         {
-            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -mainCamera.transform.position.z));
-
-            //if can drop item here
-            Vector3Int gridPosition = GridPropertyManager.Instance.grid.WorldToCell(worldPosition);
-            GridPropertyDetails gridPropertyDetails = GridPropertyManager.Instance.GetGridPropertyDetails(gridPosition.x, gridPosition.y);
-
-            if (gridPropertyDetails != null && gridPropertyDetails.canDropItem)
+            //if a valid cursor position
+            if (gridCursor.CursorPositionIsValid)
             {
-
+                Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -mainCamera.transform.position.z));
+                
                 //create item from prefab at mouse position
                 GameObject itemGameObject = Instantiate(itemPrefab, new Vector3(worldPosition.x, worldPosition.y - Settings.gridCellSize/2f, worldPosition.z), Quaternion.identity, parentItem);
                 Item item = itemGameObject.GetComponent<Item>();
