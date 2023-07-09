@@ -7,6 +7,10 @@ public class Player : SingletonMonobehavior<Player>
 {
     private WaitForSeconds afterUseToolAnimationPause;
     private WaitForSeconds useToolAnimationPause;
+
+    private WaitForSeconds afterLiftToolAnimationPause;
+    private WaitForSeconds liftToolAnimationPause;
+
     private AnimationOverride animationOverride;
     private GridCursor gridCursor;
 
@@ -89,7 +93,10 @@ public class Player : SingletonMonobehavior<Player>
         gridCursor = FindObjectOfType<GridCursor>();
 
         useToolAnimationPause = new WaitForSeconds(Settings.useToolAnimationPause);
-        afterUseToolAnimationPause = new WaitForSeconds(Settings.AfterUseToolAnimationPause);
+        afterUseToolAnimationPause = new WaitForSeconds(Settings.afterUseToolAnimationPause);
+
+        liftToolAnimationPause = new WaitForSeconds(Settings.liftToolAnimationPause);
+        afterLiftToolAnimationPause = new WaitForSeconds(Settings.afterLiftToolAnimationPause);
     }
 
     private void Update()
@@ -266,6 +273,7 @@ public class Player : SingletonMonobehavior<Player>
                     }
                     break;
 
+                case ItemType.Watering_Tool:
                 case ItemType.Hoeing_Tool:
                     ProcessPlayerClickInputTool(gridPropertyDetails, itemsDetails, playerDirection); 
                     break;
@@ -331,6 +339,13 @@ public class Player : SingletonMonobehavior<Player>
                 }
                 break;
 
+            case ItemType.Watering_Tool:
+                if (gridCursor.CursorPositionIsValid)
+                {
+                     WaterGroundAtCursor(gridPropertyDetails, playerDirection);
+                }
+                break;
+
             default: 
                 break;
         }
@@ -386,6 +401,64 @@ public class Player : SingletonMonobehavior<Player>
 
         //after animation pause
         yield return afterUseToolAnimationPause;
+
+        PlayerInputDisabled = false;
+        playerToolUseDisabled = false;
+    }
+
+    private void WaterGroundAtCursor(GridPropertyDetails gridPropertyDetails, Vector3Int playerDirection)
+    {
+        //trigger animation
+        StartCoroutine(WaterGroundAtCursorCoroutine(playerDirection, gridPropertyDetails));
+    }
+
+    private IEnumerator WaterGroundAtCursorCoroutine(Vector3Int playerDirection, GridPropertyDetails gridPropertyDetails)
+    {
+        PlayerInputDisabled = true;
+        playerToolUseDisabled = true;
+
+        //set tool animatiion to watering can in override animation
+        toolCharacterAttribute.partVariantType = PartVariantType.wateringCan;
+        characterAttributeCustomasationList.Clear();
+        characterAttributeCustomasationList.Add(toolCharacterAttribute);
+        animationOverride.ApplyCharacterCustomisationParameters(characterAttributeCustomasationList);
+
+        //TODO: if there is water in the can
+        toolEffect = ToolEffect.watering;
+
+        if (playerDirection == Vector3Int.right)
+        {
+            isLiftingToolRight = true;
+        }
+        else if (playerDirection == Vector3Int.left)
+        {
+            isLiftingToolLeft = true;
+        }
+        else if (playerDirection == Vector3Int.up)
+        {
+            isLiftingToolUp = true;
+        }
+        else if (playerDirection == Vector3Int.down)
+        {
+            isLiftingToolDown = true;
+        }
+
+        yield return liftToolAnimationPause;
+
+        //set grid property details for watered ground
+        if (gridPropertyDetails.daysSinceWater == -1)
+        {
+            gridPropertyDetails.daysSinceWater = 0;
+        }
+
+        //set grid property to watered
+        GridPropertyManager.Instance.SetGridPropertyDetails(gridPropertyDetails.gridX, gridPropertyDetails.gridY, gridPropertyDetails);
+
+        //display dug ground tiles
+        //GridPropertyManager.Instance.DisplayDugGround(gridPropertyDetails);
+
+        //after animation pause
+        yield return afterLiftToolAnimationPause;
 
         PlayerInputDisabled = false;
         playerToolUseDisabled = false;

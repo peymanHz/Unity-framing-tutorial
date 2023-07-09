@@ -124,6 +124,7 @@ public class GridCursor : MonoBehaviour
                     }
                     break;
 
+                case ItemType.Watering_Tool:
                 case ItemType.Hoeing_Tool:
                     if (!IsCursorValidForTool(gridPropertyDetails, itemsDetails))
                     {
@@ -216,6 +217,16 @@ public class GridCursor : MonoBehaviour
                 else
                 {
                     return false;
+                }
+
+            case ItemType.Watering_Tool:
+                if (gridPropertyDetails.daysSinceDug > -1 && gridPropertyDetails.daysSinceWater == -1)
+                {
+                    return true;
+                }
+                else
+                { 
+                    return false; 
                 }
 
             default: 
