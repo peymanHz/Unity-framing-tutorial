@@ -111,8 +111,8 @@ public class GridPropertyManager : SingletonMonobehavior<GridPropertyManager>, I
         //get whether surrendering tiles are dug or not
         bool upDug = IsGridSquareDug(xGrid, yGrid + 1);
         bool dowmDug = IsGridSquareDug(xGrid, yGrid - 1);
-        bool leftDug = IsGridSquareDug(xGrid + 1, yGrid);
-        bool rightDug = IsGridSquareDug(xGrid - 1, yGrid);
+        bool leftDug = IsGridSquareDug(xGrid - 1, yGrid);
+        bool rightDug = IsGridSquareDug(xGrid + 1, yGrid);
 
         #region set appropriate tile based on whether surrendering tiles are dug or not
 
