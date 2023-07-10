@@ -10,6 +10,7 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     private Canvas parentCanvas;
     private Transform parentItem;
     private GridCursor gridCursor;
+    private Cursor cursor;
     private GameObject draggedItem;
 
     public Image inventorySlotHgihLight;
@@ -46,15 +47,18 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         mainCamera = Camera.main;
         gridCursor = FindObjectOfType<GridCursor>();
+        cursor = FindObjectOfType<Cursor>();
     }
 
     private void ClearCursors()
     {
         //disable cursor
         gridCursor.DisableCursor();
+        cursor.DisableCursor();
 
         //set item type to none
         gridCursor.SelectedItemType = ItemType.none;
+        cursor.SelectedItemType = ItemType.none;
     }
 
     /// <summary>
@@ -73,6 +77,7 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
         //set use radius for cursor
         gridCursor.ItemUseGridRadius = itemsDetails.itemUseGridRadius;
+        cursor.ItemUseRadius = itemsDetails.itemUseRadius;
 
         //if item requires a grid cursor then enables cursor
         if (itemsDetails.itemUseGridRadius > 0)
@@ -82,6 +87,16 @@ public class UiInventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         else
         {
             gridCursor.DisableCursor();
+        }
+
+        //if item requires a cursor then enable cursor
+        if (itemsDetails.itemUseRadius > 0)
+        {
+            cursor.EnableCursor();
+        }
+        else
+        {
+            cursor.DisableCursor();
         }
 
         //set item type
