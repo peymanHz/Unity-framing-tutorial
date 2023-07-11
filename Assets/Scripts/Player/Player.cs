@@ -617,14 +617,11 @@ public class Player : SingletonMonobehavior<Player>
         {
             TimeManager.Instance.TestAdvanceGameMinute();
         }
+
         //trigger advance day
         if (Input.GetKey(KeyCode.G))
         {
             TimeManager.Instance.TestAdvanceGameDay();
-        }
-        if (Input.GetKey(KeyCode.L))
-        {
-            SceneControllerManager.Instance.FadeAndloadScene(SceneName.Scene1_Farm.ToString(), transform.position);
         }
     }
 
