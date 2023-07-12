@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.UI;
+using UnityEngine;
 
 public delegate void MovmentDelegate(float inputX, float inputY, 
     bool isWalking, bool isRunning, bool isIdle, bool isCarrying,
@@ -21,6 +21,17 @@ public static class EventHandler
         if (DropSelectedItemEvent != null)
         {
             DropSelectedItemEvent();
+        }
+    }
+
+    //harvest action effect evnet
+    public static event Action<Vector3, HavertsActionEffect> HavertsActionEffectEvent;
+
+    public static void CallHavertsActionEffectEvent(Vector3 effedctPosition, HavertsActionEffect havertsActionEffect)
+    {
+        if (HavertsActionEffectEvent != null)
+        {
+            HavertsActionEffectEvent(effedctPosition, havertsActionEffect);
         }
     }
 

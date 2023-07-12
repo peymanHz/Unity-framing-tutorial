@@ -592,6 +592,9 @@ public class Player : SingletonMonobehavior<Player>
                         //effect position
                         Vector3 effetPosition = new Vector3(itemArrey[i].transform.position.x, itemArrey[i].transform.position.y + Settings.gridCellSize / 2f, itemArrey[i].transform.position.z);
 
+                        //trigger reaping effect
+                        EventHandler.CallHavertsActionEffectEvent(effetPosition, HavertsActionEffect.reaping);
+
                         Destroy(itemArrey[i].gameObject);
 
                         reapableItemCount++;
