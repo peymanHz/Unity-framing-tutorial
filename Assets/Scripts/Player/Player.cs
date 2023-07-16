@@ -277,7 +277,7 @@ public class Player : SingletonMonobehavior<Player>
                 case ItemType.Seed:
                     if (Input.GetMouseButtonDown(0))
                     {
-                        ProcessPlayerClickInputSeed(itemsDetails);
+                        ProcessPlayerClickInputSeed(itemsDetails, gridPropertyDetails);
                     }
                     break;
 
@@ -354,12 +354,30 @@ public class Player : SingletonMonobehavior<Player>
         }
     }
 
-    private void ProcessPlayerClickInputSeed(ItemsDetails itemsDetails)
+    private void ProcessPlayerClickInputSeed(ItemsDetails itemsDetails, GridPropertyDetails gridPropertyDetails)
     {
+        if (itemsDetails.canBeDropped && gridCursor.CursorPositionIsValid && gridPropertyDetails.daysSinceDug > -1 && gridPropertyDetails.seedItemCode == -1)
+        {
+            PlantSeedAtCursor(gridPropertyDetails, itemsDetails);
+        }
+
         if (itemsDetails.canBeDropped && gridCursor.CursorPositionIsValid)
         {
             EventHandler.CallDropSelectedItemEvent();
         }
+    }
+
+    private void PlantSeedAtCursor(GridPropertyDetails gridPropertyDetails, ItemsDetails itemsDetails)
+    {
+        //update grid properties with seed details
+        gridPropertyDetails.seedItemCode = itemsDetails.itemCode;
+        gridPropertyDetails.growthDays = 0;
+
+        //display planted crop at grid property details
+        GridPropertyManager.Instance.DisplayPlantedCrop(gridPropertyDetails);
+
+        //remove item from inventory
+        EventHandler.CallRemoveSelectedItemFromInventoryEvent();
     }
 
     private void ProcessPlayerClickInputCommodity(ItemsDetails itemsDetails)

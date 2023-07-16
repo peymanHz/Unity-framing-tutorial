@@ -6,10 +6,12 @@ using UnityEngine.Tilemaps;
 [RequireComponent(typeof(GenerateGUID))]
 public class GridPropertyManager : SingletonMonobehavior<GridPropertyManager>, ISavable
 {
+    private Transform cropParentTransform;
     private Tilemap groundDecoration1;
     private Tilemap groundDecoration2;
     private Grid grid;
     private Dictionary<string, GridPropertyDetails> gridPropertyDictionary;
+    [SerializeField] private SO_CropDetailsList so_CropDetailsList = null;
     [SerializeField] private SO_GridPRoperties[] SO_GridPRopertiesArray = null;
     [SerializeField] private Tile[] dugGround = null;
     [SerializeField] private Tile[] wateredGround = null;
@@ -46,9 +48,24 @@ public class GridPropertyManager : SingletonMonobehavior<GridPropertyManager>, I
         EventHandler.AdvanceGameDayEvent -= AdvanceDay;
     }
 
+    private void ClearDisplayAllPlantedCrops()
+    {
+        //destroy all crops in the scene
+
+        Crop[] cropArrey;
+        cropArrey = FindObjectsOfType<Crop>();
+
+        foreach (Crop crop in cropArrey)
+        {
+            Destroy(crop.gameObject);
+        }
+    }
+
     private void Start()
     {
         InitialiseGridProperties();
+
+        ClearDisplayAllPlantedCrops();
     }
 
     private void ClearDisplayGroundDecoration()
@@ -358,6 +375,51 @@ public class GridPropertyManager : SingletonMonobehavior<GridPropertyManager>, I
             DisplayDugGround(gridPropertyDetails);
 
             DisplayDugGround(gridPropertyDetails);
+
+            DisplayPlantedCrop(gridPropertyDetails);
+        }
+    }
+
+    public void DisplayPlantedCrop(GridPropertyDetails gridPropertyDetails)
+    {
+        if (gridPropertyDetails.seedItemCode > -1)
+        {
+            //get crop details
+            CropDetails cropDetails = so_CropDetailsList.GetCropDetails(gridPropertyDetails.seedItemCode);
+
+            //prefab to use
+            GameObject cropPrefab;
+
+            //instantiate crop prefab at grid location
+            int growthStages = cropDetails.growthDays.Length;
+
+            int currentGrowthStage = 0;
+            int dayCounter = cropDetails.totalGrowthDays;
+
+            for (int i = growthStages - 1; i >= 0; i--)
+            {
+                if (gridPropertyDetails.growthDays >= dayCounter)
+                {
+                    currentGrowthStage = i;
+                    break;
+                }
+
+                dayCounter = dayCounter - cropDetails.growthDays[i];
+            }
+
+            cropPrefab = cropDetails.growthPrefab[currentGrowthStage];
+
+            Sprite growthSprite = cropDetails.growthSprite[currentGrowthStage];
+
+            Vector3 worldPosition = groundDecoration2.CellToWorld(new Vector3Int(gridPropertyDetails.gridX, gridPropertyDetails.gridY, 0));
+
+            worldPosition = new Vector3(worldPosition.x +Settings.gridCellSize / 2, worldPosition.y, worldPosition.z);
+
+            GameObject cropInstance = Instantiate(cropPrefab, worldPosition, Quaternion.identity);
+
+            cropInstance.GetComponentInChildren<SpriteRenderer>().sprite = growthSprite;
+            cropInstance.transform.SetParent(cropParentTransform);
+            cropInstance.GetComponent<Crop>().cropGridPosition = new Vector2Int(gridPropertyDetails.gridX, gridPropertyDetails.gridY);
         }
     }
 
@@ -432,6 +494,15 @@ public class GridPropertyManager : SingletonMonobehavior<GridPropertyManager>, I
 
     private void AfterSceneLoaded()
     {
+        if (GameObject.FindGameObjectWithTag(Tags.CropsParentTransform) != null)
+        {
+            cropParentTransform = GameObject.FindGameObjectWithTag(Tags.CropsParentTransform).transform;
+        }
+        else
+        {
+            cropParentTransform.parent = null;
+        }
+
         //get grid
         grid = GameObject.FindObjectOfType<Grid>();
 
@@ -560,6 +631,12 @@ public class GridPropertyManager : SingletonMonobehavior<GridPropertyManager>, I
                         GridPropertyDetails gridPropertyDetails = item.Value;
 
                         #region update all grid properties to reflect the advance in the day
+                        //if a crop is planted
+                        if (gridPropertyDetails.growthDays > -1)
+                        {
+                            gridPropertyDetails.growthDays += 1;
+                        }
+
                         //if ground is watered then clear water
                         if (gridPropertyDetails.daysSinceWater > -1)
                         {
