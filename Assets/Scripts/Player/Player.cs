@@ -8,6 +8,9 @@ public class Player : SingletonMonobehavior<Player>
     private WaitForSeconds afterUseToolAnimationPause;
     private WaitForSeconds useToolAnimationPause;
 
+    private WaitForSeconds afterPickAnimationPause;
+    private WaitForSeconds pickAnimationPause;
+
     private WaitForSeconds afterLiftToolAnimationPause;
     private WaitForSeconds liftToolAnimationPause;
 
@@ -112,6 +115,9 @@ public class Player : SingletonMonobehavior<Player>
 
         liftToolAnimationPause = new WaitForSeconds(Settings.liftToolAnimationPause);
         afterLiftToolAnimationPause = new WaitForSeconds(Settings.afterLiftToolAnimationPause);
+
+        pickAnimationPause = new WaitForSeconds(Settings.pickAnimationPause);
+        afterPickAnimationPause = new WaitForSeconds(Settings.afterPickAnimationPause);
     }
 
     private void Update()
@@ -291,6 +297,7 @@ public class Player : SingletonMonobehavior<Player>
                 case ItemType.Watering_Tool:
                 case ItemType.Hoeing_Tool:
                 case ItemType.Reaping_Tool:
+                case ItemType.Collecting_Tool:
                     ProcessPlayerClickInputTool(gridPropertyDetails, itemsDetails, playerDirection); 
                     break;
 
@@ -404,6 +411,13 @@ public class Player : SingletonMonobehavior<Player>
                 if (gridCursor.CursorPositionIsValid)
                 {
                      WaterGroundAtCursor(gridPropertyDetails, playerDirection);
+                }
+                break;
+
+            case ItemType.Collecting_Tool:
+                if (gridCursor.CursorPositionIsValid)
+                {
+                    CollectInPlayerDirection(gridPropertyDetails, itemsDetails, playerDirection);
                 }
                 break;
 
@@ -531,6 +545,73 @@ public class Player : SingletonMonobehavior<Player>
 
         PlayerInputDisabled = false;
         playerToolUseDisabled = false;
+    }
+
+    private void CollectInPlayerDirection(GridPropertyDetails gridPropertyDetails, ItemsDetails equippedItemsDetails, Vector3Int playerDirection)
+    {
+        //trigger animation
+        StartCoroutine(CollectInPlayerDirectionCoroutine(gridPropertyDetails, playerDirection, equippedItemsDetails));
+    }
+
+    private IEnumerator CollectInPlayerDirectionCoroutine(GridPropertyDetails gridPropertyDetails, Vector3Int playerDirection, ItemsDetails equippedItemsDetails)
+    {
+        PlayerInputDisabled = true;
+        playerToolUseDisabled = true;
+
+        ProcessCropWithEquippedItemInPlayerDirection(gridPropertyDetails, equippedItemsDetails, playerDirection);
+
+        yield return pickAnimationPause;
+        //after animation pause
+        yield return afterPickAnimationPause;
+
+        PlayerInputDisabled = false;
+        playerToolUseDisabled = false;
+    }
+
+    /// <summary>
+    /// methoed processes crop with equipped item in player direction
+    /// </summary>
+    private void ProcessCropWithEquippedItemInPlayerDirection(GridPropertyDetails gridPropertyDetails, ItemsDetails equippedItemsDetails, Vector3Int playerDirection)
+    {
+        switch (equippedItemsDetails.itemType)
+        {
+            case ItemType.Collecting_Tool:
+
+                if (playerDirection == Vector3Int.right)
+                {
+                    isPickingRight = true;
+                }
+                else if (playerDirection == Vector3Int.left)
+                {
+                    isPickingLeft = true;
+                }
+                else if (playerDirection == Vector3Int.up)
+                {
+                    isPickingUp = true;
+                }
+                else if (playerDirection == Vector3Int.down)
+                {
+                    isPickingDown = true;
+                }
+                break;
+
+            case ItemType.none:
+                break;
+        }
+
+        //get crop at cursor grid location
+        Crop crop = GridPropertyManager.Instance.GetCropObjectAtGridLocation(gridPropertyDetails);
+
+        //excute process tool action for crop
+        if (crop != null)
+        {
+            switch (equippedItemsDetails.itemType)
+            {
+                case ItemType.Collecting_Tool:
+                    crop.ProcessToolAction(equippedItemsDetails);
+                    break;
+            }
+        }
     }
 
     private void ReapInPlayerDirectionAtCursor(ItemsDetails itemsDetails, Vector3Int playerDirection)

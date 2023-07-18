@@ -11,6 +11,7 @@ public class GridCursor : MonoBehaviour
     [SerializeField] private RectTransform cursorRectTransform = null;
     [SerializeField] private Sprite GreenCursorSprite = null;
     [SerializeField] private Sprite RedCursorSprite = null;
+    [SerializeField] private SO_CropDetailsList so_CropDetailsList = null;
 
     private bool _cursorPositionIsValid = false;
     public bool CursorPositionIsValid { get => _cursorPositionIsValid; set => _cursorPositionIsValid = value; }
@@ -232,6 +233,40 @@ public class GridCursor : MonoBehaviour
                 { 
                     return false; 
                 }
+
+            case ItemType.Collecting_Tool:
+                //check if item can be harvested with the selected item, then check if item is fully grown
+
+                //check if seed planted
+                if (gridPropertyDetails.seedItemCode != -1)
+                {
+                    //get crop details for seed
+                    CropDetails cropDetails = so_CropDetailsList.GetCropDetails(gridPropertyDetails.seedItemCode);
+
+                    //if crop details found
+                    if (cropDetails != null)
+                    {
+                        //check if crop fully grown
+                        if (gridPropertyDetails.growthDays >= cropDetails.totalGrowthDays)
+                        {
+                            //check if the crop can be harvested with the tool selected
+                            if (cropDetails.CanUseToolToHravestCrop(itemsDetails.itemCode))
+                            {
+                                return true;
+                            }
+                            else 
+                            { 
+                                return false; 
+                            }
+                        }
+                        else
+                        {
+                            return false;  
+                        }
+                    }
+                }
+
+                    return false;
 
             default: 
                 return false;

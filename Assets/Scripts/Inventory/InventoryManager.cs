@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class InventoryManager : SingletonMonobehavior<InventoryManager>
@@ -92,6 +93,30 @@ public class InventoryManager : SingletonMonobehavior<InventoryManager>
         //send event that inventory has been updated
         EventHandler.CallInventoryUpdateEvent(inventoryLocation, inventoryLists[(int)inventoryLocation]);
     }
+
+    /// <summary>
+    /// add an item of type itemcode to the inventory list for the inventorylocation
+    /// </summary>
+    public void AddItem(InventoryLocation inventoryLocation, int itemCode)
+    {
+        List<InventoryItem> inventoryList = inventoryLists[(int)inventoryLocation];
+
+        //check if inventory already contains the item
+        int itemPosition = FindItemInInventory(inventoryLocation, itemCode);
+
+        if (itemPosition != -1)
+        {
+            AddItemAtPosition(inventoryList, itemCode, itemPosition);
+        }
+        else
+        {
+            AddItemAtPosition(inventoryList, itemCode); 
+        }
+
+        //send even that inventory has been updated
+        EventHandler.CallInventoryUpdateEvent(inventoryLocation, inventoryLists[(int)inventoryLocation]);
+    }
+
 
     /// <summary>
     /// Add item to the end of the inventory

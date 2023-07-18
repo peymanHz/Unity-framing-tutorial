@@ -534,6 +534,41 @@ public class GridPropertyManager : SingletonMonobehavior<GridPropertyManager>, I
     }
 
     /// <summary>
+    /// return the crop object at the gridX, gridY position or null if no crop was found
+    /// </summary>
+    public Crop GetCropObjectAtGridLocation(GridPropertyDetails gridPropertyDetails)
+    {
+        Vector3 worldPosition = grid.GetCellCenterWorld(new Vector3Int(gridPropertyDetails.gridX, gridPropertyDetails.gridY, 0));
+        Collider2D[] collider2DArrey = Physics2D.OverlapPointAll(worldPosition);
+
+        //loop through colliders to get crop game object
+        Crop crop = null;
+
+        for (int i = 0; i < collider2DArrey.Length; i++)
+        {
+            crop = collider2DArrey[i].gameObject.GetComponentInParent<Crop>();
+            if (crop != null && crop.cropGridPosition == new Vector2Int(gridPropertyDetails.gridX, gridPropertyDetails.gridY))
+            {
+                break;
+            }
+            crop = collider2DArrey[i].gameObject.GetComponentInChildren<Crop>();
+            if (crop != null && crop.cropGridPosition == new Vector2Int(gridPropertyDetails.gridX, gridPropertyDetails.gridY))
+            {
+                break;
+            }
+        }
+        return crop;
+    }
+
+    /// <summary>
+    /// returns crop details foe the provided seed item code
+    /// </summary>
+    public CropDetails GetCropDetails(int seedItemCode)
+    {
+        return so_CropDetailsList.GetCropDetails(seedItemCode);
+    }
+
+    /// <summary>
     /// get the grid property details for the tile at (gridX,gridY). if no grid property details exist null is returned and can assume all grid property details values are null or false
     /// </summary>
     public GridPropertyDetails GetGridPropertyDetails(int gridX, int gridY)
